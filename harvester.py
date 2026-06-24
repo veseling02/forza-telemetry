@@ -18,20 +18,23 @@ def harvest_telemetry():
 
         while True:
             data, _ = s.recvfrom(1024)
-            if len(data) >= 120:
-                
-                is_race_on = struct.unpack('<i', data[0:4])[0]
-                
-                if not is_race_on:
-                    continue
-                
-                gas = struct.unpack('<B', data[315:316])[0] / 255.0
-                brake = struct.unpack('<B', data[316:317])[0] / 255.0
-                steering = struct.unpack('<b', data[320:321])[0] / 127.0
-                
-                gas_history.append(gas)
-                brake_history.append(brake)
-                steer_history.append(steering)
+            if len(data) < 320:
+                continue
+            try:    
+                    is_race_on = struct.unpack('<i', data[0:4])[0]
+                    
+                    if not is_race_on:
+                        continue
+                    
+                    gas = struct.unpack('<B', data[315:316])[0] / 255.0
+                    brake = struct.unpack('<B', data[316:317])[0] / 255.0
+                    steering = struct.unpack('<b', data[320:321])[0] / 127.0
+                    
+                    gas_history.append(gas)
+                    brake_history.append(brake)
+                    steer_history.append(steering)
+            except Exception as e:
+                print(f"Bad packet: {e}")
                 
                 
 threading.Thread(target=harvest_telemetry, daemon=True).start()
