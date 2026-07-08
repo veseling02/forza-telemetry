@@ -38,7 +38,7 @@ def harvest_telemetry():
                 speed = struct.unpack('<f', data[256:260])[0] * 3.6
                 pos_x = struct.unpack('<f', data[232:236])[0]
                 pos_y = struct.unpack('<f', data[240:244])[0]
-                lap = struct.unpack('<H', data[300:302])[0] + 1
+                lap = struct.unpack('<H', data[300:302])[0]
                 
                 gas_history.append(gas)
                 brake_history.append(brake)
