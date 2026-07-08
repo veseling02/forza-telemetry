@@ -44,7 +44,7 @@ def harvest_telemetry():
                 brake_history.append(brake)
                 steer_history.append(steering)
                 speed_history.append(speed)
-                current_lap_points.append((pos_x, pos_y))
+                
                 
                 if current_lap is None:
                     current_lap = lap
@@ -53,7 +53,7 @@ def harvest_telemetry():
                     track_outline = list(current_lap_points)
                     current_lap_points.clear()
                     current_lap = lap
-                
+                current_lap_points.append((pos_x, pos_y))
                 
             except Exception as e:
                 print(f"Bad packet: {e}")
