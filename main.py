@@ -14,7 +14,23 @@ x_step = WIDTH / 240
 def get_track_projection(world_points, screen_width, screen_height):
     if not world_points:
         return []
-
+    min_x = min(x for x, y in world_points)
+    max_x = max(x for x, y in world_points)
+    min_y = min(y for x, y in world_points)
+    max_y = max(y for x, y in world_points)
+    if max_x == min_x or max_y == min_y:
+        return []
+    
+    return [
+        (
+            (x - min_x) / (max_x - min_x) * screen_width,
+            (y - min_y) / (max_y - min_y) * screen_height
+        )
+        for x, y in world_points
+    ]
+    
+    
+    
 running  = True
 while running:
     for event in pygame.event.get():
@@ -25,4 +41,14 @@ while running:
                 pygame.display.toggle_fullscreen()
                 
     screen.fill((15, 15, 15))
+    print(f"outline: {len(harvester.track_outline)} | current lap points: {len(harvester.current_lap_points)}")
+    
+    projected = get_track_projection(harvester.current_lap_points, WIDTH, HEIGHT)
+    
+    for point in projected:
+        pygame.draw.circle(screen, (255, 255, 255), (int(point[0]), int(point[1])), 2)
+    
+    pygame.display.flip()
+    clock.tick(60)
                 
+pygame.quit()
