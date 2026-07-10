@@ -43,7 +43,12 @@ while running:
     screen.fill((15, 15, 15))
     print(f"outline: {len(harvester.track_outline)} | current lap points: {len(harvester.current_lap_points)}")
     
+    if harvester.current_lap_points:
+        print(harvester.current_lap_points[0])
+        print(harvester.current_lap_points[-1])
+    
     projected = get_track_projection(harvester.current_lap_points, WIDTH, HEIGHT)
+    print(f"projected points: {len(projected)}")
     
     for point in projected:
         pygame.draw.circle(screen, (255, 255, 255), (int(point[0]), int(point[1])), 2)
