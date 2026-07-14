@@ -1,35 +1,17 @@
 import pygame
 import harvester
+import math
 
 pygame.init()
 
 WIDTH, HEIGHT = 600, 400
+BAR_WIDTH = WIDTH - 20
+x_step = BAR_WIDTH / 240
+font = pygame.font.SysFont(None, 24)
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Forza Live Telemetry")
 
 clock = pygame.time.Clock()
-
-x_step = WIDTH / 240
-
-def get_track_projection(world_points, screen_width, screen_height):
-    if not world_points:
-        return []
-    min_x = min(x for x, y in world_points)
-    max_x = max(x for x, y in world_points)
-    min_y = min(y for x, y in world_points)
-    max_y = max(y for x, y in world_points)
-    if max_x == min_x or max_y == min_y:
-        return []
-    
-    return [
-        (
-            (x - min_x) / (max_x - min_x) * screen_width,
-            (y - min_y) / (max_y - min_y) * screen_height
-        )
-        for x, y in world_points
-    ]
-    
-    
     
 running  = True
 while running:
@@ -41,18 +23,28 @@ while running:
                 pygame.display.toggle_fullscreen()
                 
     screen.fill((15, 15, 15))
-    print(f"outline: {len(harvester.track_outline)} | current lap points: {len(harvester.current_lap_points)}")
+        
+    pygame.draw.rect(screen, (40, 40, 40), (10, 10, BAR_WIDTH, 100))
+    screen.blit(font.render("GAS", True, (255, 255, 255)), (10, 10))
     
-    if harvester.current_lap_points:
-        print(harvester.current_lap_points[0])
-        print(harvester.current_lap_points[-1])
+    for index in range(1, len(harvester.gas_history)):
+        x1 = 10 + (index - 1) * x_step
+        x2 = 10 + index * x_step
+        y1 = 10 + (1.0 - harvester.gas_history[index - 1]) * 100
+        y2 = 10 + (1.0 - harvester.gas_history[index]) * 100
+        pygame.draw.line(screen, (0, 255, 0), (int(x1), int(y1)), (int(x2), int(y2)))
+        
     
-    projected = get_track_projection(harvester.current_lap_points, WIDTH, HEIGHT)
-    print(f"projected points: {len(projected)}")
+    pygame.draw.rect(screen, (40, 40, 40), (10, 120, BAR_WIDTH, 100))
+    screen.blit(font.render("BRAKE", True, (255, 255, 255)), (10, 120))
     
-    for point in projected:
-        pygame.draw.circle(screen, (255, 255, 255), (int(point[0]), int(point[1])), 2)
-    
+    for index in range(1, len(harvester.brake_history)):
+        x1 = 10 + (index - 1) * x_step
+        x2 = 10 + index * x_step
+        y1 = 120 + (1.0 - harvester.brake_history[index - 1]) * 100
+        y2 = 120 + (1.0 - harvester.brake_history[index]) *100
+        pygame.draw.line(screen, (255, 0, 0), (int(x1), int(y1)), (int(x2), int(y2)))
+        
     pygame.display.flip()
     clock.tick(60)
                 
