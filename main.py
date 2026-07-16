@@ -7,6 +7,7 @@ pygame.init()
 
 WIDTH, HEIGHT = 600, 400
 BAR_WIDTH = WIDTH - 20
+FLASH_AT = 0.85
 font = pygame.font.SysFont(None, 24)
 big_font = pygame.font.SysFont(None, 56)
 panel_color = (40, 40, 40) # color for the panels: Gray
@@ -52,10 +53,22 @@ def draw_trace(surface, history, rect, color, label):
         p2 = (int(x2), int(y2)) 
         
         pygame.draw.line(surface, color, p1, p2)
-    
+
+def flash_on(period_ms=150): # makes it so it alternates and doesnt rely on frames
+    return (pygame.time.get_ticks() // period_ms) % 2 == 0
+   
 def draw_rpm_panel(surface, rpm, frac, rect):
     pygame.draw.rect(surface, panel_color, rect)
     surface.blit(font.render("RPM", True, text_color), (rect.left + 4, rect.top - LABEL_H))
+    
+    if frac >= FLASH_AT:
+        fill_color = (255, 40, 40) if flash_on() else (255, 140, 0)
+    else:
+        fill_color = (0, 160, 70)
+    
+    fill_h = int(frac * rect.height) # height of the colored rectangle for the rpm
+    pygame.draw.rect(surface, fill_color, pygame.Rect(rect.left, rect.bottom - fill_h, rect.width, fill_h))
+    
     text = big_font.render(f"{rpm:.0f}", True, text_color)
     surface.blit(text, text.get_rect(center=rect.center))
     
