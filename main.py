@@ -72,6 +72,13 @@ def draw_rpm_panel(surface, rpm, frac, rect):
     text = big_font.render(f"{rpm:.0f}", True, text_color)
     surface.blit(text, text.get_rect(center=rect.center))
     
+def draw_speed_panel(surface, speed, rect):
+    pygame.draw.rect(surface, panel_color, rect)
+    surface.blit(font.render("SPEED KM/H", True, text_color), (rect.left + 4, rect.top - LABEL_H))
+    
+    text = big_font.render(f"{speed}", True, text_color)
+    surface.blit(text, text.get_rect(center=rect.center))
+    
 running  = True
 while running:
     for event in pygame.event.get():
@@ -86,9 +93,8 @@ while running:
     draw_trace(screen, harvester.gas_history, gas_rect, (0, 255, 0), "GAS")
     draw_trace(screen, harvester.brake_history, brake_rect, (255, 0, 0), "BRAKE")
     draw_rpm_panel(screen, harvester.latest["rpm"], harvester.latest["rpm_frac"], rpm_rect)
-    pygame.draw.rect(screen, panel_color, speed_rect)
+    draw_speed_panel(screen, harvester.latest["speed"], speed_rect)
     pygame.draw.rect(screen, panel_color, steering_rect)
-    
     
     pygame.display.flip()
     clock.tick(60)
