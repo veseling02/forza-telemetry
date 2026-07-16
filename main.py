@@ -1,17 +1,54 @@
 import pygame
 import harvester
 import math
+harvester.start()
 
 pygame.init()
 
 WIDTH, HEIGHT = 600, 400
 BAR_WIDTH = WIDTH - 20
-x_step = BAR_WIDTH / 240
 font = pygame.font.SysFont(None, 24)
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Forza Live Telemetry")
 
 clock = pygame.time.Clock()
+
+MARGIN = 10
+GAP = 10
+LABEL_H = font.get_height() + 4
+
+# top row gas|brake
+
+gas_rect = pygame.Rect(MARGIN, MARGIN + LABEL_H, BAR_WIDTH, 100)
+brake_rect = pygame.Rect(MARGIN, gas_rect.bottom + GAP + LABEL_H, BAR_WIDTH, 100)
+
+# bottom row rpm|speed|steering
+
+panel_w = (BAR_WIDTH - 2 * GAP) // 3 # width of the 3 panels while taking in account the gaps
+panel_top = brake_rect.bottom + GAP + LABEL_H # where the bottom panels start 
+panel_h = HEIGHT - panel_top - MARGIN # panel height using all the space left and leaving a gap at the bottom
+
+rpm_rect = pygame.Rect(MARGIN, panel_top, panel_w, panel_h)
+speed_rect = pygame.Rect(rpm_rect.right + GAP, panel_top, panel_w, panel_h)
+steering_rect = pygame.Rect(speed_rect.right + GAP, panel_top, panel_w, panel_h)
+
+
+def draw_trace(surface, history, rect, color, label):
+    values = list(history)
+    pygame.draw.rect(surface, (40, 40, 40), rect)
+    surface.blit(font.render(label, True, (255, 255, 255)), (rect.left + 4, rect.top - LABEL_H))
+    step = rect.width / (len(values) - 1)
+    for i in range (1, len(values)):
+        x1 = rect.left + (i - 1) * step
+        x2 = rect.left + i * step
+        y1 = rect.top + (1.0 - values[i - 1]) * rect.height
+        y2 = rect.top + (1.0 - values[i]) * rect.height
+        
+        # build points that are needed for the draw.line function
+        p1 = (int(x1), int(y1))
+        p2 = (int(x2), int(y2)) 
+        
+        pygame.draw.line(surface, color, p1, p2)
     
 running  = True
 while running:
@@ -23,28 +60,10 @@ while running:
                 pygame.display.toggle_fullscreen()
                 
     screen.fill((15, 15, 15))
-        
-    pygame.draw.rect(screen, (40, 40, 40), (10, 10, BAR_WIDTH, 100))
-    screen.blit(font.render("GAS", True, (255, 255, 255)), (10, 10))
     
-    for index in range(1, len(harvester.gas_history)):
-        x1 = 10 + (index - 1) * x_step
-        x2 = 10 + index * x_step
-        y1 = 10 + (1.0 - harvester.gas_history[index - 1]) * 100
-        y2 = 10 + (1.0 - harvester.gas_history[index]) * 100
-        pygame.draw.line(screen, (0, 255, 0), (int(x1), int(y1)), (int(x2), int(y2)))
-        
+    draw_trace(screen, harvester.gas_history, gas_rect, (0, 255, 0), "GAS")
+    draw_trace(screen, harvester.brake_history, brake_rect, (255, 0, 0), "BRAKE")
     
-    pygame.draw.rect(screen, (40, 40, 40), (10, 120, BAR_WIDTH, 100))
-    screen.blit(font.render("BRAKE", True, (255, 255, 255)), (10, 120))
-    
-    for index in range(1, len(harvester.brake_history)):
-        x1 = 10 + (index - 1) * x_step
-        x2 = 10 + index * x_step
-        y1 = 120 + (1.0 - harvester.brake_history[index - 1]) * 100
-        y2 = 120 + (1.0 - harvester.brake_history[index]) *100
-        pygame.draw.line(screen, (255, 0, 0), (int(x1), int(y1)), (int(x2), int(y2)))
-        
     pygame.display.flip()
     clock.tick(60)
                 

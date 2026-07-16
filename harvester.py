@@ -4,23 +4,23 @@ import threading
 import time
 from collections import deque
 
-UDP_IP = "127.0.0.1"
+UDP_IP = "0.0.0.0"
 UDP_PORT = 6969
 
-gas_history = deque([0.0] * 240, maxlen=240)
-brake_history = deque([0.0] * 240, maxlen=240)
-steer_history = deque([0.0] * 240, maxlen=240)
-speed_history = deque([0.0] * 240, maxlen=240)
+HISTORY_LEN = 240 # 4 seconds at Forza's 60 packets/sec
 
-def harvest_telemetry():
-    global track_outline, current_lap
-    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
-        s.bind((UDP_IP, UDP_PORT))
+gas_history = deque([0.0] * HISTORY_LEN, maxlen=HISTORY_LEN)
+brake_history = deque([0.0] * HISTORY_LEN, maxlen=HISTORY_LEN)
+steer_history = deque([0.0] * HISTORY_LEN, maxlen=HISTORY_LEN)
+speed_history = deque([0.0] * HISTORY_LEN, maxlen=HISTORY_LEN)
+
+def _harvest(sock):
+    with sock:
         print(f"Listening for data on port {UDP_PORT}...")
         
 
         while True:
-            data, _ = s.recvfrom(1024)
+            data, _ = sock.recvfrom(1024)
             if len(data) < 321:
                 continue
             try:    
@@ -31,8 +31,9 @@ def harvest_telemetry():
                 
                 gas = struct.unpack('<B', data[315:316])[0] / 255.0
                 brake = struct.unpack('<B', data[316:317])[0] / 255.0
-                steering = struct.unpack('<b', data[320:321])[0] / 127.0
+                steering = max(-1, struct.unpack('<b', data[320:321])[0] / 127.0)
                 speed = struct.unpack('<f', data[256:260])[0] * 3.6
+                rpm = struct.unpack('<f', data[16:20])[0]
                 
                 gas_history.append(gas)
                 brake_history.append(brake)
@@ -43,11 +44,14 @@ def harvest_telemetry():
                 print(f"Bad packet: {e}")
                 
                 
-threading.Thread(target=harvest_telemetry, daemon=True).start()
-
+def start():
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock.bind((UDP_IP, UDP_PORT))
+    threading.Thread(target=_harvest, args=(sock,), daemon=True).start()
 
 if __name__ == "__main__":
     print("--- RUNNING HARVESTER DIAGNOSTIC ---")
+    start()
     while True:
         print(f"Gas: {gas_history[-1]:.2f} | Speed: {speed_history[-1]:.1f} km/h")
         time.sleep(0.2)
