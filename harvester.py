@@ -13,6 +13,7 @@ gas_history = deque([0.0] * HISTORY_LEN, maxlen=HISTORY_LEN)
 brake_history = deque([0.0] * HISTORY_LEN, maxlen=HISTORY_LEN)
 steer_history = deque([0.0] * HISTORY_LEN, maxlen=HISTORY_LEN)
 speed_history = deque([0.0] * HISTORY_LEN, maxlen=HISTORY_LEN)
+latest = {"rpm": 0.0, "rpm_frac": 0.0, "speed": 0.0}
 
 def _harvest(sock):
     with sock:
@@ -34,7 +35,11 @@ def _harvest(sock):
                 steering = max(-1, struct.unpack('<b', data[320:321])[0] / 127.0)
                 speed = struct.unpack('<f', data[256:260])[0] * 3.6
                 rpm = struct.unpack('<f', data[16:20])[0]
+                max_rpm = struct.unpack('<f', data[8:12])[0]
                 
+                latest['rpm'] = rpm
+                latest['rpm_frac'] = rpm / max_rpm if max_rpm > 0 else 0.0
+                latest['speed'] = speed
                 gas_history.append(gas)
                 brake_history.append(brake)
                 steer_history.append(steering)

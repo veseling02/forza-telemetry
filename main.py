@@ -8,6 +8,9 @@ pygame.init()
 WIDTH, HEIGHT = 600, 400
 BAR_WIDTH = WIDTH - 20
 font = pygame.font.SysFont(None, 24)
+big_font = pygame.font.SysFont(None, 56)
+panel_color = (40, 40, 40) # color for the panels: Gray
+text_color = (255, 255, 255) # color for the text: White
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Forza Live Telemetry")
 
@@ -35,8 +38,8 @@ steering_rect = pygame.Rect(speed_rect.right + GAP, panel_top, panel_w, panel_h)
 
 def draw_trace(surface, history, rect, color, label):
     values = list(history)
-    pygame.draw.rect(surface, (40, 40, 40), rect)
-    surface.blit(font.render(label, True, (255, 255, 255)), (rect.left + 4, rect.top - LABEL_H))
+    pygame.draw.rect(surface, panel_color, rect)
+    surface.blit(font.render(label, True, text_color), (rect.left + 4, rect.top - LABEL_H))
     step = rect.width / (len(values) - 1)
     for i in range (1, len(values)):
         x1 = rect.left + (i - 1) * step
@@ -49,6 +52,12 @@ def draw_trace(surface, history, rect, color, label):
         p2 = (int(x2), int(y2)) 
         
         pygame.draw.line(surface, color, p1, p2)
+    
+def draw_rpm_panel(surface, rpm, frac, rect):
+    pygame.draw.rect(surface, panel_color, rect)
+    surface.blit(font.render("RPM", True, text_color), (rect.left + 4, rect.top - LABEL_H))
+    text = big_font.render(f"{rpm:.0f}", True, text_color)
+    surface.blit(text, text.get_rect(center=rect.center))
     
 running  = True
 while running:
@@ -63,6 +72,10 @@ while running:
     
     draw_trace(screen, harvester.gas_history, gas_rect, (0, 255, 0), "GAS")
     draw_trace(screen, harvester.brake_history, brake_rect, (255, 0, 0), "BRAKE")
+    draw_rpm_panel(screen, harvester.latest["rpm"], harvester.latest["rpm_frac"], rpm_rect)
+    pygame.draw.rect(screen, panel_color, speed_rect)
+    pygame.draw.rect(screen, panel_color, steering_rect)
+    
     
     pygame.display.flip()
     clock.tick(60)
