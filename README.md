@@ -27,7 +27,7 @@ pip install pygame
 python main.py
 ```
 
-Then tell Forza to send telemetry. In game: **Settings → HUD and Gameplay → Data Out**, set it to ON with IP `127.0.0.1` and port `6969` (same machine — use your PC's LAN IP if the game runs elsewhere). Built and tested against the Forza Horizon packet layout; Motorsport uses different offsets and won't decode correctly.
+Then tell Forza to send telemetry. In game: **Settings → HUD and Gameplay → Data Out**, set it to ON with IP `127.0.0.1` and port `6969`. The app listens on localhost only, so Windows won't ask for firewall permission; if your game runs on a console or another PC, change `UDP_IP` to `"0.0.0.0"` in `harvester.py` (and expect the firewall prompt — that's it doing its job). Built and tested against the Forza Horizon packet layout; Motorsport uses different offsets and won't decode correctly.
 
 To build a standalone Windows exe:
 
