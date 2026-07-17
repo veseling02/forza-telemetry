@@ -126,10 +126,7 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_F11:
-                pygame.display.toggle_fullscreen()
-                
+
     screen.fill(bg_color)
     
     draw_trace(screen, harvester.gas_history, gas_rect, (0, 255, 0), "GAS")

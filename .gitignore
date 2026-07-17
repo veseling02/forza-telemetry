@@ -1,3 +1,5 @@
 forza_telemetry.csv
-__pycache__/harvester.cpython-314.pyc
-__pycache__/main.cpython-314.pyc
+__pycache__/
+ForzaTelemetry.spec
+build/
+dist/
