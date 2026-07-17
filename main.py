@@ -12,6 +12,7 @@ font = pygame.font.SysFont(None, 24)
 big_font = pygame.font.SysFont(None, 56)
 panel_color = (40, 40, 40) # color for the panels: Gray
 text_color = (255, 255, 255) # color for the text: White
+bg_color = (15, 15, 15) # screen background, also used for the number plates
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Forza Live Telemetry")
 
@@ -36,6 +37,18 @@ rpm_rect = pygame.Rect(MARGIN, panel_top, panel_w, panel_h)
 speed_rect = pygame.Rect(rpm_rect.right + GAP, panel_top, panel_w, panel_h)
 steering_rect = pygame.Rect(speed_rect.right + GAP, panel_top, panel_w, panel_h)
 
+# static plates for the readouts, sized for the worst-case digit count
+
+def make_plate(text_font, sample, pad_x=14, pad_y=8):
+    w, h = text_font.size(sample)
+    return pygame.Rect(0, 0, w + pad_x, h + pad_y)
+
+rpm_plate = make_plate(big_font, "8888")
+rpm_plate.midbottom = (rpm_rect.centerx, rpm_rect.bottom - 8)
+
+speed_plate = make_plate(big_font, "888")
+speed_plate.center = speed_rect.center
+
 
 def draw_trace(surface, history, rect, color, label):
     values = list(history)
@@ -57,7 +70,12 @@ def draw_trace(surface, history, rect, color, label):
 def flash_on(period_ms=150): # makes it so it alternates and doesnt rely on frames
     return (pygame.time.get_ticks() // period_ms) % 2 == 0
    
-def draw_rpm_panel(surface, rpm, frac, rect):
+def blit_plated(surface, text_font, text, plate):
+    pygame.draw.rect(surface, bg_color, plate, border_radius=4)
+    text_surf = text_font.render(text, True, text_color)
+    surface.blit(text_surf, text_surf.get_rect(center=plate.center))
+   
+def draw_rpm_panel(surface, rpm, frac, rect, plate):
     pygame.draw.rect(surface, panel_color, rect)
     surface.blit(font.render("RPM", True, text_color), (rect.left + 4, rect.top - LABEL_H))
     
@@ -69,15 +87,13 @@ def draw_rpm_panel(surface, rpm, frac, rect):
     fill_h = int(frac * rect.height) # height of the colored rectangle for the rpm
     pygame.draw.rect(surface, fill_color, pygame.Rect(rect.left, rect.bottom - fill_h, rect.width, fill_h))
     
-    text = big_font.render(f"{rpm:.0f}", True, text_color)
-    surface.blit(text, text.get_rect(center=rect.center))
+    blit_plated(surface, big_font, f"{rpm:.0f}", plate)
     
-def draw_speed_panel(surface, speed, rect):
+def draw_speed_panel(surface, speed, rect, plate):
     pygame.draw.rect(surface, panel_color, rect)
     surface.blit(font.render("SPEED KM/H", True, text_color), (rect.left + 4, rect.top - LABEL_H))
     
-    text = big_font.render(f"{speed}", True, text_color)
-    surface.blit(text, text.get_rect(center=rect.center))
+    blit_plated(surface, big_font, f"{speed:.0f}", plate)
     
 running  = True
 while running:
@@ -88,12 +104,12 @@ while running:
             if event.key == pygame.K_F11:
                 pygame.display.toggle_fullscreen()
                 
-    screen.fill((15, 15, 15))
+    screen.fill(bg_color)
     
     draw_trace(screen, harvester.gas_history, gas_rect, (0, 255, 0), "GAS")
     draw_trace(screen, harvester.brake_history, brake_rect, (255, 0, 0), "BRAKE")
-    draw_rpm_panel(screen, harvester.latest["rpm"], harvester.latest["rpm_frac"], rpm_rect)
-    draw_speed_panel(screen, harvester.latest["speed"], speed_rect)
+    draw_rpm_panel(screen, harvester.latest["rpm"], harvester.latest["rpm_frac"], rpm_rect, rpm_plate)
+    draw_speed_panel(screen, harvester.latest["speed"], speed_rect, speed_plate)
     pygame.draw.rect(screen, panel_color, steering_rect)
     
     pygame.display.flip()
