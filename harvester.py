@@ -4,7 +4,7 @@ import threading
 import time
 from collections import deque
 
-UDP_IP = "0.0.0.0"
+UDP_IP = "127.0.0.1" # loopback only: no firewall prompt; use "0.0.0.0" to accept packets from other machines
 UDP_PORT = 6969
 
 HISTORY_LEN = 240 # 4 seconds at Forza's 60 packets/sec
