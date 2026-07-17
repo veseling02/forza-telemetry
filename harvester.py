@@ -11,9 +11,8 @@ HISTORY_LEN = 240 # 4 seconds at Forza's 60 packets/sec
 
 gas_history = deque([0.0] * HISTORY_LEN, maxlen=HISTORY_LEN)
 brake_history = deque([0.0] * HISTORY_LEN, maxlen=HISTORY_LEN)
-steer_history = deque([0.0] * HISTORY_LEN, maxlen=HISTORY_LEN)
 speed_history = deque([0.0] * HISTORY_LEN, maxlen=HISTORY_LEN)
-latest = {"rpm": 0.0, "rpm_frac": 0.0, "speed": 0.0}
+latest = {"rpm": 0.0, "rpm_frac": 0.0, "speed": 0.0, "steer": 0.0}
 
 def _harvest(sock):
     with sock:
@@ -40,9 +39,9 @@ def _harvest(sock):
                 latest['rpm'] = rpm
                 latest['rpm_frac'] = rpm / max_rpm if max_rpm > 0 else 0.0
                 latest['speed'] = speed
+                latest["steer"] = steering
                 gas_history.append(gas)
                 brake_history.append(brake)
-                steer_history.append(steering)
                 speed_history.append(speed)
                 
             except Exception as e:

@@ -8,6 +8,8 @@ pygame.init()
 WIDTH, HEIGHT = 600, 400
 BAR_WIDTH = WIDTH - 20
 FLASH_AT = 0.85
+WHEEL_LOCK_DEG = 540
+STEER_SMOOTH = 0.15 # fraction of the gap to the real input closed per frame
 font = pygame.font.SysFont(None, 24)
 big_font = pygame.font.SysFont(None, 56)
 panel_color = (40, 40, 40) # color for the panels: Gray
@@ -49,6 +51,28 @@ rpm_plate.midbottom = (rpm_rect.centerx, rpm_rect.bottom - 8)
 speed_plate = make_plate(big_font, "888")
 speed_plate.center = speed_rect.center
 
+def draw_steering_panel(surface, steer, rect):
+    pygame.draw.rect(surface, panel_color, rect)
+    surface.blit(font.render("STEERING", True, text_color), (rect.left + 4, rect.top - LABEL_H))
+    
+    center = rect.center
+    radius = min(rect.width, rect.height) // 2 - 10
+
+    pygame.draw.circle(surface, (90, 90, 90), center, radius, width=4)
+    
+    rot = steer * WHEEL_LOCK_DEG
+    
+    for spoke_deg in (0, 180, 90):
+        a = math.radians(spoke_deg + rot)
+        end = (center[0] + radius * math.cos(a), center[1] + radius * math.sin(a))
+        pygame.draw.line(surface, text_color, center, end, 4)
+    
+    a = math.radians(-90 + rot)
+    tip = (center[0] + radius * math.cos(a), center[1] + radius * math.sin(a))
+    inner = (center[0] + (radius - 12) * math.cos(a), center[1] + (radius - 12) * math.sin(a))
+    pygame.draw.line(surface, (255, 40, 40), inner, tip, 6)
+    
+    pygame.draw.circle(surface, text_color, center, 6)
 
 def draw_trace(surface, history, rect, color, label):
     values = list(history)
@@ -95,6 +119,8 @@ def draw_speed_panel(surface, speed, rect, plate):
     
     blit_plated(surface, big_font, f"{speed:.0f}", plate)
     
+shown_steer = 0.0 # display-side steering that chases the raw input
+
 running  = True
 while running:
     for event in pygame.event.get():
@@ -110,7 +136,8 @@ while running:
     draw_trace(screen, harvester.brake_history, brake_rect, (255, 0, 0), "BRAKE")
     draw_rpm_panel(screen, harvester.latest["rpm"], harvester.latest["rpm_frac"], rpm_rect, rpm_plate)
     draw_speed_panel(screen, harvester.latest["speed"], speed_rect, speed_plate)
-    pygame.draw.rect(screen, panel_color, steering_rect)
+    shown_steer += (harvester.latest["steer"] - shown_steer) * STEER_SMOOTH
+    draw_steering_panel(screen, shown_steer, steering_rect)
     
     pygame.display.flip()
     clock.tick(60)
