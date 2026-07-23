@@ -1,6 +1,6 @@
 # Forza Live Telemetry
 
-A real-time telemetry dashboard for Forza Horizon, written in Python with pygame. The game streams its telemetry over UDP; this app catches the packets, decodes them, and draws what your hands and the car are doing — live, at 60 fps.
+A real-time telemetry dashboard for Forza Horizon, written in Python with pygame. The game streams its telemetry over UDP; this app catches the packets, decodes them, and draws what your hands and the car are doing — live, at 60 fps. 
 
 
 ## What it shows
